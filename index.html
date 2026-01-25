@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TrainX | Request Manager</title>
-    <!-- Custom Favicon: Gradient Box with 'Tx' Monogram -->
-    <link id="favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='100%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%232dd4bf;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='25' fill='url(%23grad)' /%3E%3Ctext x='50' y='55' font-family='sans-serif' font-weight='bold' font-size='55' fill='white' text-anchor='middle' dy='.1em'%3ETx%3C/text%3E%3C/svg%3E">
+    <!-- Favicon -->
+    <link id="favicon" rel="icon" href="favicon.png">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -81,15 +81,20 @@
     <style>
         /* CSS Variables for Theming */
         :root {
-            --bg-grad-start: #0f172a;
-            --bg-grad-end: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --glass-panel: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-input: rgba(15, 23, 42, 0.6);
-            --glass-input-focus: rgba(15, 23, 42, 0.8);
-            --col-header-bg: transparent;
+            /* Updated Brand Colors for Dark Mode Background */
+            --bg-grad-start: #3d757c;
+            --bg-grad-end: #69c3cd;
+            
+            /* High Contrast Text for Dark Mode */
+            --text-main: #ffffff;
+            --text-muted: #e2e8f0; /* Much lighter grey for readability against teal */
+            
+            /* Darker Glass Panels for better contrast */
+            --glass-panel: rgba(15, 23, 42, 0.85); 
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-input: rgba(15, 23, 42, 0.7);
+            --glass-input-focus: rgba(15, 23, 42, 0.9);
+            --col-header-bg: rgba(0, 0, 0, 0.2);
         }
 
         body.light-mode {
@@ -97,9 +102,9 @@
             --bg-grad-end: #e2e8f0;
             --text-main: #1e293b;
             --text-muted: #64748b;
-            --glass-panel: rgba(255, 255, 255, 0.75);
+            --glass-panel: rgba(255, 255, 255, 0.85);
             --glass-border: rgba(0, 0, 0, 0.05);
-            --glass-input: rgba(255, 255, 255, 0.8);
+            --glass-input: rgba(255, 255, 255, 0.9);
             --glass-input-focus: #ffffff;
             --col-header-bg: rgba(255,255,255,0.5);
         }
@@ -117,7 +122,7 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
 
         /* Custom Dropdown Styling - Arrow Removed */
@@ -165,6 +170,14 @@
 </head>
 <body class="antialiased selection:bg-indigo-500 selection:text-white">
 
+    <!-- Loading Screen (Prevents Flicker) -->
+    <div id="loading-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900 transition-opacity duration-500">
+        <div class="flex flex-col items-center gap-4">
+            <img src="favicon.png" alt="Loading" class="w-16 h-16 animate-bounce object-contain">
+            <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    </div>
+
     <!-- Background Orbs -->
     <div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
         <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600 rounded-full blur-[120px] opacity-20 animate-float"></div>
@@ -179,14 +192,12 @@
         </div>
     </div>
 
-    <!-- Auth Section -->
-    <div id="auth-container" class="fixed inset-0 flex items-center justify-center z-40 p-4">
+    <!-- Auth Section (Hidden by Default) -->
+    <div id="auth-container" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl p-8 relative overflow-hidden animate-slide-up">
             <div class="text-center mb-8">
-                <!-- LOGO: Tx Monogram -->
-                <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-teal-400 rounded-xl mx-auto flex items-center justify-center mb-4 shadow-lg">
-                    <span class="text-white font-bold text-3xl tracking-tight">Tx</span>
-                </div>
+                <!-- UPDATED LOGO: Transparent, No Container -->
+                <img src="favicon.png" alt="TrainX Logo" class="w-16 h-16 mx-auto mb-4 object-contain">
                 <h1 class="text-2xl font-bold tracking-tight">TrainX</h1>
                 <p class="text-[var(--text-muted)] text-sm mt-1">Request Management System</p>
             </div>
@@ -197,7 +208,7 @@
                     <label class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider ml-1">Identity</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-4 top-3.5 text-[var(--text-muted)] text-sm"></i>
-                        <input type="text" id="login-email" placeholder="Email or username (e.g. john.vivarch)" class="glass-input w-full rounded-xl py-3 pl-10 pr-4 text-sm" required>
+                        <input type="text" id="login-email" placeholder="Email or username (e.g. daryl.vivarch)" class="glass-input w-full rounded-xl py-3 pl-10 pr-4 text-sm" required>
                     </div>
                 </div>
                 <div class="space-y-1">
@@ -297,9 +308,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-teal-400 rounded-lg flex items-center justify-center">
-                            <span class="text-white font-bold text-sm tracking-tight">Tx</span>
-                        </div>
+                        <!-- UPDATED LOGO: Transparent, No Container -->
+                        <img src="favicon.png" alt="TrainX Logo" class="w-8 h-8 object-contain">
                         <span class="font-bold text-lg tracking-tight hidden sm:block">TrainX</span>
                     </div>
 
@@ -647,6 +657,7 @@
 
         // Auth
         onAuthStateChanged(auth, async (user) => {
+            const loader = document.getElementById('loading-screen');
             if (user) {
                 currentUser = user;
                 try {
@@ -656,12 +667,19 @@
                         showDashboard();
                         loadRequests();
                         loadAllUsers(); 
+                        if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
                     } else {
                         signOut(auth);
+                        if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
                     }
-                } catch(e) { console.error(e); }
+                } catch(e) { 
+                    console.error(e);
+                    if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
+                }
             } else {
-                currentUser = null; userData = null; showAuth();
+                currentUser = null; userData = null; 
+                showAuth();
+                if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
             }
         });
 
