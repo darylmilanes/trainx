@@ -2,1328 +2,1094 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TrainX | Request Manager</title>
-    <!-- Favicon -->
-    <link id="favicon" rel="icon" href="favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrainX | Trainer Request Database</title>
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
+    <!-- PWA and Icons -->
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Tailwind CSS for layout basics -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        glass: {
-                            panel: 'var(--glass-panel)',
-                            border: 'var(--glass-border)',
-                            input: 'var(--glass-input)',
-                        },
-                        brand: {
-                            lc: '#000080', 
-                            sw: '#6e44ff', 
-                            ar: '#8db600', 
-                            ep: '#dc2626', 
-                            sf: '#800000', 
-                            vi: '#20b2aa', 
-                            ps: '#8b0000', 
-                            mu: '#ff8c00', 
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                        'pulse-urgent': 'pulseRed 2s infinite',
-                        'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
-                        'float': 'float 6s ease-in-out infinite'
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        pulseRed: {
-                            '0%, 100%': { boxShadow: '0 0 0 0 rgba(220, 38, 38, 0.4)' },
-                            '50%': { boxShadow: '0 0 0 10px rgba(220, 38, 38, 0)' },
-                        },
-                        shake: {
-                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
-                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
-                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
-                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        /* CSS Variables for Theming */
-        :root {
-            /* Updated Brand Colors for Dark Mode Background */
-            --bg-grad-start: #3d757c;
-            --bg-grad-end: #69c3cd;
-            
-            /* High Contrast Text for Dark Mode */
-            --text-main: #ffffff;
-            --text-muted: #e2e8f0; /* Much lighter grey for readability against teal */
-            
-            /* Darker Glass Panels for better contrast */
-            --glass-panel: rgba(15, 23, 42, 0.85); 
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-input: rgba(15, 23, 42, 0.7);
-            --glass-input-focus: rgba(15, 23, 42, 0.9);
-            --col-header-bg: rgba(0, 0, 0, 0.2);
-        }
-
-        body.light-mode {
-            --bg-grad-start: #f1f5f9;
-            --bg-grad-end: #e2e8f0;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --glass-panel: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(0, 0, 0, 0.05);
-            --glass-input: rgba(255, 255, 255, 0.9);
-            --glass-input-focus: #ffffff;
-            --col-header-bg: rgba(255,255,255,0.5);
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
-            color: var(--text-main);
-            min-height: 100vh;
-            transition: background 0.5s ease, color 0.5s ease;
-        }
-
-        /* Glassmorphism Utilities */
-        .glass-panel {
-            background: var(--glass-panel);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Custom Dropdown Styling - Arrow Removed */
-        .custom-select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: none !important;
-            padding-right: 0.75rem;
-        }
-
-        .glass-input {
-            background: var(--glass-input);
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            transition: all 0.3s ease;
-        }
-
-        .glass-input:focus {
-            background: var(--glass-input-focus);
-            border-color: #6366f1; /* Indigo-500 */
-            outline: none;
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
-        }
-        
-        .glass-input:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: rgba(0,0,0,0.2);
-        }
-
-        body.light-mode select.glass-input { color: #1e293b; }
-        body.light-mode select.glass-input option { background-color: #f8fafc; color: #1e293b; }
-        body:not(.light-mode) select.glass-input option { background-color: #1e293b; color: #f8fafc; }
-
-        /* Hide Scrollbar */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Drag and Drop Visuals */
-        .dragging { opacity: 0.5; transform: scale(0.95); }
-        .droppable-hover { background: rgba(99, 102, 241, 0.1); border: 2px dashed rgba(99, 102, 241, 0.4); }
-        .no-zoom { touch-action: manipulation; }
-    </style>
-</head>
-<body class="antialiased selection:bg-indigo-500 selection:text-white">
-
-    <!-- Loading Screen (Prevents Flicker) -->
-    <div id="loading-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900 transition-opacity duration-500">
-        <div class="flex flex-col items-center gap-4">
-            <img src="favicon.png" alt="Loading" class="w-16 h-16 animate-bounce object-contain">
-            <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-    </div>
-
-    <!-- Background Orbs -->
-    <div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600 rounded-full blur-[120px] opacity-20 animate-float"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-600 rounded-full blur-[120px] opacity-20 animate-float" style="animation-delay: -2s;"></div>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed top-4 right-4 z-[100] transform translate-x-[150%] transition-transform duration-300 pointer-events-none">
-        <div class="glass-panel px-6 py-4 rounded-xl flex items-center gap-3 border-l-4 border-indigo-500 shadow-2xl backdrop-blur-md bg-slate-900/90 text-white">
-            <i class="fa-solid fa-circle-info text-indigo-400"></i>
-            <span id="toast-message" class="text-sm font-medium">Notification</span>
-        </div>
-    </div>
-
-    <!-- Auth Section (Hidden by Default) -->
-    <div id="auth-container" class="hidden fixed inset-0 flex items-center justify-center z-40 p-4">
-        <div class="glass-panel w-full max-w-md rounded-2xl p-8 relative overflow-hidden animate-slide-up">
-            <div class="text-center mb-8">
-                <!-- UPDATED LOGO: Transparent, No Container -->
-                <img src="favicon.png" alt="TrainX Logo" class="w-16 h-16 mx-auto mb-4 object-contain">
-                <h1 class="text-2xl font-bold tracking-tight">TrainX</h1>
-                <p class="text-[var(--text-muted)] text-sm mt-1">Request Management System</p>
-            </div>
-
-            <!-- Login Form -->
-            <form id="login-form" class="space-y-4">
-                <div class="space-y-1">
-                    <label class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider ml-1">Identity</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-user absolute left-4 top-3.5 text-[var(--text-muted)] text-sm"></i>
-                        <input type="text" id="login-email" placeholder="Email or username (e.g. daryl.vivarch)" class="glass-input w-full rounded-xl py-3 pl-10 pr-4 text-sm" required>
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider ml-1">Password</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-lock absolute left-4 top-3.5 text-[var(--text-muted)] text-sm"></i>
-                        <input type="password" id="login-password" placeholder="••••••••" class="glass-input w-full rounded-xl py-3 pl-10 pr-10 text-sm" required>
-                        <button type="button" onclick="togglePassword('login-password')" class="absolute right-4 top-3.5 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
-                            <i class="fa-solid fa-eye text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between text-xs text-[var(--text-muted)] mt-2">
-                    <label class="flex items-center gap-2 cursor-pointer hover:text-[var(--text-main)] transition-colors">
-                        <input type="checkbox" class="rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-indigo-500">
-                        Remember me
-                    </label>
-                    <a href="#" class="hover:text-indigo-500 transition-colors">Forgot password?</a>
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-[0.98] mt-6 flex justify-center items-center gap-2">
-                    <span>Sign In</span>
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                </button>
-                <p class="text-center text-xs text-[var(--text-muted)] mt-6">
-                    New to the team? <a href="#" onclick="switchAuthMode('signup')" class="text-indigo-400 hover:text-indigo-300 font-medium">Create Account</a>
-                </p>
-            </form>
-
-            <!-- Signup Form -->
-            <form id="signup-form" class="space-y-4 hidden">
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-[var(--text-muted)] ml-1">Full Name</label>
-                        <input type="text" id="signup-name" placeholder="John Doe" class="glass-input w-full rounded-xl py-3 px-4 text-sm" required>
-                    </div>
-                     <div class="space-y-1">
-                        <label class="text-xs font-semibold text-[var(--text-muted)] ml-1">Email</label>
-                        <input type="email" id="signup-email" placeholder="john@vivarch.com" class="glass-input w-full rounded-xl py-3 px-4 text-sm" required>
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs font-semibold text-[var(--text-muted)] ml-1">Password</label>
-                    <div class="relative">
-                        <input type="password" id="signup-password-input" placeholder="Create a strong password" class="glass-input w-full rounded-xl py-3 px-4 pr-10 text-sm" required>
-                        <button type="button" onclick="togglePassword('signup-password-input')" class="absolute right-4 top-3 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
-                            <i class="fa-solid fa-eye text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs font-semibold text-[var(--text-muted)] ml-1">Confirm Password</label>
-                    <div class="relative">
-                        <input type="password" id="signup-confirm-password" placeholder="Retype password" class="glass-input w-full rounded-xl py-3 px-4 pr-10 text-sm" required>
-                        <button type="button" onclick="togglePassword('signup-confirm-password')" class="absolute right-4 top-3 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
-                            <i class="fa-solid fa-eye text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider ml-1">Position</label>
-                    <div class="grid grid-cols-1 gap-2">
-                        <label class="glass-input rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors">
-                            <input type="radio" name="role" value="Programme Manager" class="text-indigo-500 focus:ring-indigo-500" required>
-                            <div class="text-sm">
-                                <span class="block font-medium">Programme Manager</span>
-                            </div>
-                        </label>
-                        <label class="glass-input rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors">
-                            <input type="radio" name="role" value="Education Consultant" class="text-indigo-500 focus:ring-indigo-500">
-                            <div class="text-sm">
-                                <span class="block font-medium">Education Consultant</span>
-                            </div>
-                        </label>
-                        <label class="glass-input rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors">
-                            <input type="radio" name="role" value="Assistant Education Consultant" class="text-indigo-500 focus:ring-indigo-500">
-                            <div class="text-sm">
-                                <span class="block font-medium">Assistant Education Consultant</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-teal-500/30 transition-all active:scale-[0.98] mt-6">
-                    Create Account
-                </button>
-                <p class="text-center text-xs text-[var(--text-muted)] mt-6">
-                    Already have an account? <a href="#" onclick="switchAuthMode('login')" class="text-teal-400 hover:text-teal-300 font-medium">Sign In</a>
-                </p>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main Dashboard -->
-    <div id="dashboard-container" class="hidden min-h-screen flex flex-col transition-opacity duration-500 opacity-0">
-        
-        <!-- Navbar -->
-        <nav class="glass-panel sticky top-0 z-30 border-b border-white/5">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-16">
-                    <div class="flex items-center gap-3">
-                        <!-- UPDATED LOGO: Transparent, No Container -->
-                        <img src="favicon.png" alt="TrainX Logo" class="w-8 h-8 object-contain">
-                        <span class="font-bold text-lg tracking-tight hidden sm:block">TrainX</span>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <!-- Search Ticket Field -->
-                        <div class="hidden md:block relative">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[var(--text-muted)] text-xs"></i>
-                            <input type="text" id="ticket-search" placeholder="Ticket #..." class="glass-input rounded-full py-1.5 pl-8 pr-3 text-xs w-32 focus:ring-indigo-500 focus:w-48 transition-all">
-                        </div>
-
-                        <div class="hidden md:block">
-                            <select id="filter-brand" class="glass-input custom-select rounded-full py-1.5 px-3 text-xs w-32 focus:ring-indigo-500">
-                                <option value="">All Brands</option>
-                                <option value="LC">Life Champs</option>
-                                <option value="SW">Studio Wu</option>
-                                <option value="AR">Artelier</option>
-                                <option value="EP">Epitomedia</option>
-                                <option value="SF">Sports First</option>
-                                <option value="VI">Vivarch</option>
-                                <option value="PS">Passionista</option>
-                                <option value="MU">Musicon</option>
-                            </select>
-                        </div>
-                        <div class="hidden md:block">
-                            <select id="filter-author" class="glass-input custom-select rounded-full py-1.5 px-3 text-xs w-32 focus:ring-indigo-500">
-                                <option value="">All Authors</option>
-                            </select>
-                        </div>
-                        
-                        <button id="create-btn" onclick="openCreateModal()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-full shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center gap-2">
-                            <i class="fa-solid fa-plus"></i>
-                            <span>New Request</span>
-                        </button>
-
-                        <div class="relative">
-                            <button id="profile-btn" class="flex items-center gap-2 focus:outline-none">
-                                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center border border-white/10 text-xs font-bold text-white shadow-md" id="user-avatar">DV</div>
-                            </button>
-                            <div id="profile-menu" class="absolute right-0 mt-2 w-48 glass-panel rounded-xl shadow-xl py-1 hidden animate-fade-in origin-top-right z-50">
-                                <div class="px-4 py-3 border-b border-[var(--glass-border)]">
-                                    <p class="text-xs font-medium truncate" id="user-name-display">User</p>
-                                    <p class="text-[10px] text-[var(--text-muted)] truncate" id="user-role-display">Role</p>
-                                </div>
-                                <div class="px-4 py-2 border-b border-[var(--glass-border)] flex items-center justify-between">
-                                    <span class="text-xs text-[var(--text-muted)]">Dark Mode</span>
-                                    <button onclick="toggleTheme()" class="text-xs text-indigo-400 hover:text-indigo-500">
-                                        <i id="theme-icon" class="fa-solid fa-moon"></i>
-                                    </button>
-                                </div>
-                                <a href="#" onclick="handleLogout()" class="block px-4 py-2 text-xs text-red-400 hover:bg-white/5 transition-colors">
-                                    <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Sign Out
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="md:hidden px-4 pb-3 flex flex-col gap-2">
-                <div class="relative w-full">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[var(--text-muted)] text-xs"></i>
-                    <input type="text" id="mobile-ticket-search" placeholder="Search Ticket #..." class="glass-input w-full rounded-lg py-2 pl-8 pr-3 text-xs">
-                </div>
-                <div class="flex gap-2">
-                    <select id="mobile-filter-brand" class="glass-input custom-select w-1/2 rounded-lg py-2 px-3 text-xs">
-                        <option value="">All Brands</option>
-                        <option value="LC">Life Champs</option>
-                        <option value="SW">Studio Wu</option>
-                    </select>
-                    <select id="mobile-filter-author" class="glass-input custom-select w-1/2 rounded-lg py-2 px-3 text-xs">
-                        <option value="">All Authors</option>
-                    </select>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Kanban Board -->
-        <main class="flex-1 p-4 sm:p-6 overflow-x-hidden">
-            <div class="max-w-7xl mx-auto h-full">
-                <!-- Grid changed to 4 columns -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-full items-start">
-                    
-                    <!-- Pending -->
-                    <div class="flex flex-col h-full" data-status="Pending">
-                        <div class="flex items-center justify-between mb-4 px-2" style="background: var(--col-header-bg); border-radius: 8px; padding: 4px 8px;">
-                            <h2 class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span>
-                                Pending
-                            </h2>
-                            <span class="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-[var(--text-muted)]" id="count-pending">0</span>
-                        </div>
-                        <div id="col-pending" class="glass-panel flex-1 rounded-2xl p-3 min-h-[500px] space-y-3 transition-colors duration-300 overflow-y-auto no-scrollbar" ondragover="allowDrop(event)" ondrop="drop(event, 'Pending')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"></div>
-                    </div>
-
-                    <!-- Ongoing -->
-                    <div class="flex flex-col h-full" data-status="Ongoing">
-                        <div class="flex items-center justify-between mb-4 px-2" style="background: var(--col-header-bg); border-radius: 8px; padding: 4px 8px;">
-                            <h2 class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
-                                Ongoing
-                            </h2>
-                            <span class="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-[var(--text-muted)]" id="count-ongoing">0</span>
-                        </div>
-                        <div id="col-ongoing" class="glass-panel flex-1 rounded-2xl p-3 min-h-[500px] space-y-3 transition-colors duration-300 overflow-y-auto no-scrollbar" ondragover="allowDrop(event)" ondrop="drop(event, 'Ongoing')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"></div>
-                    </div>
-
-                    <!-- Closed -->
-                    <div class="flex flex-col h-full" data-status="Closed">
-                        <div class="flex items-center justify-between mb-4 px-2" style="background: var(--col-header-bg); border-radius: 8px; padding: 4px 8px;">
-                            <h2 class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
-                                Closed
-                            </h2>
-                            <span class="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-[var(--text-muted)]" id="count-closed">0</span>
-                        </div>
-                        <div id="col-closed" class="glass-panel flex-1 rounded-2xl p-3 min-h-[500px] space-y-3 transition-colors duration-300 opacity-80 overflow-y-auto no-scrollbar" ondragover="allowDrop(event)" ondrop="drop(event, 'Closed')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"></div>
-                    </div>
-
-                     <!-- Archived -->
-                     <div class="flex flex-col h-full" data-status="Archived">
-                        <div class="flex items-center justify-between mb-4 px-2" style="background: var(--col-header-bg); border-radius: 8px; padding: 4px 8px;">
-                            <h2 class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.5)]"></span>
-                                Archived
-                            </h2>
-                            <span class="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-[var(--text-muted)]" id="count-archived">0</span>
-                        </div>
-                        <div id="col-archived" class="glass-panel flex-1 rounded-2xl p-3 min-h-[500px] space-y-3 transition-colors duration-300 opacity-60 overflow-y-auto no-scrollbar" ondragover="allowDrop(event)" ondrop="drop(event, 'Archived')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)"></div>
-                    </div>
-
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Create Request Modal -->
-    <div id="create-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('create-modal')"></div>
-        <div class="relative glass-panel w-full max-w-lg rounded-2xl p-6 animate-slide-up">
-            <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-pen-to-square text-indigo-400"></i> New Request
-            </h3>
-            <form id="create-request-form" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Brand</label>
-                        <select id="req-brand" class="glass-input custom-select w-full rounded-xl py-2 px-3 text-sm" required>
-                            <option value="LC">Life Champs</option>
-                            <option value="SW">Studio Wu</option>
-                            <option value="AR">Artelier</option>
-                            <option value="EP">Epitomedia</option>
-                            <option value="SF">Sports First</option>
-                            <option value="VI">Vivarch</option>
-                            <option value="PS">Passionista</option>
-                            <option value="MU">Musicon</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Closing Date</label>
-                        <input type="date" id="req-date" class="glass-input w-full rounded-xl py-2 px-3 text-sm" required>
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">School Name</label>
-                    <input type="text" id="req-school" placeholder="e.g. Anderson Secondary" class="glass-input w-full rounded-xl py-2 px-3 text-sm" required>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Programme Name</label>
-                    <input type="text" id="req-programme" placeholder="e.g. Robotics Advanced" class="glass-input w-full rounded-xl py-2 px-3 text-sm" required>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Specs Link</label>
-                    <input type="url" id="req-link" placeholder="https://drive.google.com/..." class="glass-input w-full rounded-xl py-2 px-3 text-sm">
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="closeModal('create-modal')" class="px-4 py-2 text-sm text-[var(--text-muted)] hover:text-white transition-colors">Cancel</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all active:scale-95" id="submit-req-btn">Create Request</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Request Modal -->
-    <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('edit-modal')"></div>
-        <div class="relative glass-panel w-full max-w-lg rounded-2xl p-6 animate-slide-up">
-            <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-pen-to-square text-indigo-400"></i> Edit Request
-            </h3>
-            <form id="edit-request-form" class="space-y-4">
-                <input type="hidden" id="edit-req-id">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Brand</label>
-                        <select id="edit-brand" class="glass-input custom-select w-full rounded-xl py-2 px-3 text-sm">
-                            <option value="LC">Life Champs</option>
-                            <option value="SW">Studio Wu</option>
-                            <option value="AR">Artelier</option>
-                            <option value="EP">Epitomedia</option>
-                            <option value="SF">Sports First</option>
-                            <option value="VI">Vivarch</option>
-                            <option value="PS">Passionista</option>
-                            <option value="MU">Musicon</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Closing Date</label>
-                        <input type="date" id="edit-date" class="glass-input w-full rounded-xl py-2 px-3 text-sm" required>
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Ticket ID</label>
-                    <input type="text" id="edit-ticket-id" class="glass-input w-full rounded-xl py-2 px-3 text-sm font-mono" required>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">School Name</label>
-                    <input type="text" id="edit-school" class="glass-input w-full rounded-xl py-2 px-3 text-sm" required>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Programme Name</label>
-                    <input type="text" id="edit-programme" class="glass-input w-full rounded-xl py-2 px-3 text-sm" required>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs text-[var(--text-muted)] font-semibold uppercase">Specs Link</label>
-                    <input type="url" id="edit-link" class="glass-input w-full rounded-xl py-2 px-3 text-sm">
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="closeModal('edit-modal')" class="px-4 py-2 text-sm text-[var(--text-muted)] hover:text-white transition-colors">Cancel</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all active:scale-95">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Details Modal -->
-    <div id="details-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('details-modal')"></div>
-        <div class="relative glass-panel w-full max-w-2xl rounded-2xl flex flex-col max-h-[90vh] animate-slide-up overflow-hidden">
-            
-            <div id="modal-header" class="p-6 border-b border-white/5 relative">
-                <button onclick="closeModal('details-modal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-colors">
-                    <i class="fa-solid fa-xmark text-white"></i>
-                </button>
-                <div class="flex items-center gap-3 mb-2">
-                    <span id="detail-ticket" class="font-mono text-xs bg-black/30 px-2 py-1 rounded text-white/80">LC-012426-001</span>
-                    <span id="detail-status" class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded bg-yellow-500/20 text-yellow-300">Pending</span>
-                </div>
-                <h2 id="detail-school" class="text-2xl font-bold text-white leading-tight">School Name</h2>
-                <p id="detail-programme" class="text-indigo-200 text-sm mt-1">Programme Name</p>
-                
-                <!-- Action Buttons for Creator -->
-                <div id="creator-actions" class="hidden mt-4 flex gap-2">
-                    <button id="btn-edit" class="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors">
-                        <i class="fa-solid fa-pen"></i> Edit
-                    </button>
-                    <button id="btn-delete" class="text-xs bg-red-500/20 hover:bg-red-500/40 text-red-300 px-3 py-1.5 rounded-lg flex items-center gap-2 transition-colors">
-                        <i class="fa-solid fa-trash"></i> Delete
-                    </button>
-                </div>
-            </div>
-
-            <div id="detail-scroll-container" class="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass-panel bg-black/20 p-3 rounded-lg">
-                        <p class="text-[10px] text-[var(--text-muted)] uppercase font-bold mb-1">Created By</p>
-                        <p id="detail-author" class="text-sm font-medium text-[var(--text-main)]">Name</p>
-                    </div>
-                    <div class="glass-panel bg-black/20 p-3 rounded-lg">
-                        <p class="text-[10px] text-[var(--text-muted)] uppercase font-bold mb-1">Closing Date</p>
-                        <p id="detail-date" class="text-sm font-medium text-[var(--text-main)]">Jan 01, 2026</p>
-                    </div>
-                </div>
-
-                <div>
-                    <a id="detail-link" href="#" target="_blank" class="flex items-center gap-3 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500/20 transition-all group">
-                        <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-link text-indigo-400"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-indigo-400">View Specifications</p>
-                            <p class="text-xs text-[var(--text-muted)]">External Link</p>
-                        </div>
-                        <i class="fa-solid fa-arrow-up-right-from-square ml-auto text-xs text-indigo-400 opacity-50 group-hover:opacity-100"></i>
-                    </a>
-                </div>
-
-                <div>
-                    <h3 class="text-sm font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4 border-b border-[var(--glass-border)] pb-2">Discussion & Notes</h3>
-                    <div id="comments-list" class="space-y-4 mb-4"></div>
-                    
-                    <form id="comment-form" class="relative">
-                        <!-- Suggestion Box (Absolute) - No Scrollbar -->
-                        <div id="tag-suggestions" class="hidden absolute bottom-full left-0 mb-2 w-64 glass-panel rounded-xl shadow-2xl border border-indigo-500/30 overflow-hidden z-30 flex flex-col max-h-48 overflow-y-auto no-scrollbar">
-                            <!-- JS Injects items here -->
-                        </div>
-
-                        <div id="reply-context" class="hidden absolute -top-8 left-0 right-0 bg-indigo-900/80 backdrop-blur text-xs px-4 py-1.5 rounded-t-lg border border-indigo-500/30 border-b-0 flex justify-between items-center animate-fade-in z-0">
-                            <span class="text-indigo-200 truncate">Replying to...</span>
-                            <button type="button" onclick="cancelReply()" class="text-indigo-400 hover:text-white"><i class="fa-solid fa-times"></i></button>
-                        </div>
-                        
-                        <textarea id="new-comment" rows="1" placeholder="Add a note (Type @Name to tag)..." class="glass-input w-full rounded-xl py-3 pl-4 pr-12 text-sm resize-none overflow-hidden relative z-10" required oninput="this.style.height='';this.style.height=this.scrollHeight+'px'"></textarea>
-                        
-                        <!-- Seamless Button -->
-                        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400 hover:text-white transition-colors z-20 p-2 flex items-center justify-center">
-                            <i class="fa-solid fa-paper-plane text-sm"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
+    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, arrayUnion, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, query, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+        // --- Your Firebase Configuration ---
         const firebaseConfig = {
-            apiKey: "AIzaSyCcaEDYJnpAujmKsiOn9ARV08ztLt-hbYA",
-            authDomain: "generic-5cae4.firebaseapp.com",
-            projectId: "generic-5cae4",
-            storageBucket: "generic-5cae4.firebasestorage.app",
-            messagingSenderId: "107085769864",
-            appId: "1:107085769864:web:457aec2d0632a51de9c33d"
+            apiKey: "AIzaSyDoeWb3w1vJs6hoexIetSiAqQU1wXhX1tM",
+            authDomain: "trainx-49d0e.firebaseapp.com",
+            projectId: "trainx-49d0e",
+            storageBucket: "trainx-49d0e.firebasestorage.app",
+            messagingSenderId: "905714923468",
+            appId: "1:905714923468:web:5218d3c8b379dae8238f69"
         };
 
-        const BRAND_BG = {
-            'LC': 'bg-[#000080]', 'SW': 'bg-[#6e44ff]', 'AR': 'bg-[#8db600]',
-            'EP': 'bg-[#dc2626]', 'SF': 'bg-[#800000]', 'VI': 'bg-[#20b2aa]',
-            'PS': 'bg-[#8b0000]', 'MU': 'bg-[#ff8c00]'
-        };
-
-        const STANDARD_ROLES = ["Programme Manager", "Education Consultant", "Assistant Education Consultant"];
-
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        let currentUser = null;
-        let userData = null;
+        const auth = getAuth(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'trainx-prod';
+
+        // --- App State ---
+        let currentUser = { name: "", role: "", uid: "" };
         let allRequests = [];
-        let dbUsers = []; 
-        let replyingTo = null; 
+        let isFormDirty = false;
 
-        // Auth
-        onAuthStateChanged(auth, async (user) => {
-            const loader = document.getElementById('loading-screen');
-            if (user) {
-                currentUser = user;
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        userData = userDoc.data();
-                        showDashboard();
-                        loadRequests();
-                        loadAllUsers(); 
-                        if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
-                    } else {
-                        signOut(auth);
-                        if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
-                    }
-                } catch(e) { 
-                    console.error(e);
-                    if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
-                }
-            } else {
-                currentUser = null; userData = null; 
-                showAuth();
-                if(loader) loader.classList.add('opacity-0', 'pointer-events-none');
-            }
-        });
+        // --- Modal State (NEW) ---
+        let activeModalReq = null;
+        let modalIsViewOnly = false;
 
-        function showAuth() {
-            document.getElementById('auth-container').classList.remove('hidden');
-            document.getElementById('dashboard-container').classList.add('hidden');
-            document.getElementById('dashboard-container').classList.remove('opacity-100');
-        }
-
-        function showDashboard() {
-            document.getElementById('auth-container').classList.add('hidden');
-            const dash = document.getElementById('dashboard-container');
-            dash.classList.remove('hidden');
-            setTimeout(() => dash.classList.add('opacity-100'), 50);
-            
-            document.getElementById('user-name-display').innerText = userData.name;
-            document.getElementById('user-role-display').innerText = userData.role;
-            document.getElementById('user-avatar').innerText = getInitials(userData.name);
-
-            const allowed = ['Education Consultant', 'Assistant Education Consultant'];
-            if (allowed.includes(userData.role) || userData.role === 'EC' || userData.role === 'AEC') {
-                document.getElementById('create-btn').classList.remove('hidden');
-            } else {
-                document.getElementById('create-btn').classList.add('hidden');
-            }
-        }
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('login-email').value;
-            let email = input.includes('@') ? input : input + '@gmail.com'; 
-            try {
-                await signInWithEmailAndPassword(auth, email, document.getElementById('login-password').value);
-                showToast(`Welcome back!`, 'success');
-            } catch (error) { showToast(error.message, 'error'); }
-        });
-
-        document.getElementById('signup-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password-input').value;
-            if (password !== document.getElementById('signup-confirm-password').value) {
-                return showToast("Passwords do not match", 'error');
-            }
-            try {
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                await setDoc(doc(db, "users", cred.user.uid), {
-                    name: name, email: email, 
-                    role: document.querySelector('input[name="role"]:checked').value,
-                    createdAt: new Date()
-                });
-                await updateProfile(cred.user, { displayName: name });
-                showToast('Account created!', 'success');
-            } catch (error) { showToast(error.message, 'error'); }
-        });
-
-        // Set min date to today for Create Modal
-        window.openCreateModal = () => {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('req-date').min = today;
-            document.getElementById('create-modal').classList.remove('hidden');
+        const brands = {
+            "Artelier": { code: "AR", color: "rgba(141, 182, 0, 0.8)", text: "white" },
+            "Epitomedia": { code: "EP", color: "rgba(239, 68, 68, 0.8)", text: "white" },
+            "Life Champs": { code: "LC", color: "rgba(0, 0, 128, 0.8)", text: "white" },
+            "Musicon": { code: "MC", color: "rgba(245, 158, 11, 0.8)", text: "black" },
+            "Passionista": { code: "PS", color: "rgba(128, 0, 0, 0.8)", text: "white" },
+            "Sports First": { code: "SF", color: "rgba(255, 69, 0, 0.8)", text: "white" },
+            "Studio Wu": { code: "SW", color: "rgba(128, 0, 128, 0.8)", text: "white" },
+            "Vivarch": { code: "VE", color: "rgba(0, 128, 128, 0.8)", text: "white" }
         };
 
-        document.getElementById('create-request-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submit-req-btn');
-            btn.innerText = "Processing..."; btn.disabled = true;
+        // --- Utility Functions ---
+        window.showToast = (message, type = "info") => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                success: "bg-emerald-500", error: "bg-rose-500", info: "bg-indigo-600", warning: "bg-amber-500"
+            };
+            toast.className = `${colors[type]} text-white px-5 py-3 rounded-xl shadow-lg font-bold text-sm transform transition-all duration-300 translate-y-10 opacity-0 flex items-center border border-white/20 z-50`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-10px]', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
 
-            const brand = document.getElementById('req-brand').value;
-            const dateObj = new Date();
-            const dateStr = `${String(dateObj.getMonth()+1).padStart(2,'0')}${String(dateObj.getDate()).padStart(2,'0')}${String(dateObj.getFullYear()).slice(-2)}`;
+        const isNextWorkingDay = (dateStr) => {
+            if (!dateStr) return false;
+            const target = new Date(dateStr);
+            target.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let nextWorkDay = new Date(today);
+            if (today.getDay() === 5) nextWorkDay.setDate(today.getDate() + 3);
+            else if (today.getDay() === 6) nextWorkDay.setDate(today.getDate() + 2);
+            else nextWorkDay.setDate(today.getDate() + 1);
+            return target.getTime() === nextWorkDay.getTime();
+        };
 
-            try {
-                const counterRef = doc(db, "counters", "requests");
-                let newCountVal = 1;
-                await runTransaction(db, async (t) => {
-                    const docSnap = await t.get(counterRef);
-                    newCountVal = docSnap.exists() ? docSnap.data().count + 1 : 1;
-                    t.set(counterRef, { count: newCountVal }, { merge: true });
-                });
+        const isPastDue = (dateStr) => {
+            if (!dateStr) return false;
+            const target = new Date(dateStr);
+            target.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return target.getTime() < today.getTime();
+        };
 
-                const ticketId = `${brand}-${dateStr}-${String(newCountVal).padStart(3, '0')}`;
-                await setDoc(doc(db, "requests", ticketId), {
-                    ticketId, brand,
-                    school: document.getElementById('req-school').value,
-                    programme: document.getElementById('req-programme').value,
-                    link: document.getElementById('req-link').value,
-                    closingDate: document.getElementById('req-date').value,
-                    status: "Pending",
-                    createdBy: currentUser.uid,
-                    authorName: userData.name,
-                    createdAt: new Date().toISOString(),
-                    comments: [],
-                    previousTicketIds: []
-                });
-                closeModal('create-modal');
-                document.getElementById('create-request-form').reset();
-                showToast(`Request ${ticketId} created!`, 'success');
-            } catch (error) { showToast(error.message, 'error'); }
-            finally { btn.disabled = false; btn.innerText = "Create Request"; }
-        });
+        const isDueToday = (dateStr) => {
+            if (!dateStr) return false;
+            const target = new Date(dateStr);
+            target.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return target.getTime() === today.getTime();
+        };
 
-        function loadRequests() {
-            onSnapshot(collection(db, "requests"), (snap) => {
-                const newRequests = [];
-                snap.forEach(d => newRequests.push({ id: d.id, ...d.data() }));
-                allRequests = newRequests;
-                renderBoard();
-                updateAuthorFilter();
-                
-                const modal = document.getElementById('details-modal');
-                if(!modal.classList.contains('hidden') && modal.dataset.reqId) {
-                   const req = allRequests.find(r => r.id === modal.dataset.reqId);
-                   if(req) {
-                        openDetails(req.id); 
-                   } else {
-                       closeModal('details-modal'); 
-                   }
+        const getWorkingDaysRemaining = (dateStr, status) => {
+            if (!dateStr) return "";
+            if (status === "CLOSED" || status === "SKIPPED") return ""; // Stop countdown
+
+            const target = new Date(dateStr);
+            target.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (target.getTime() < today.getTime()) return "Overdue";
+            if (target.getTime() === today.getTime()) return "Closing today";
+
+            let count = 0;
+            let current = new Date(today);
+            current.setDate(current.getDate() + 1); // start counting from tomorrow
+
+            while (current <= target) {
+                const day = current.getDay();
+                if (day !== 0 && day !== 6) count++;
+                current.setDate(current.getDate() + 1);
+            }
+
+            return `${count} day${count !== 1 ? 's' : ''} before closing`;
+        };
+
+        function linkifyText(text) {
+            if (!text) return "";
+
+            const escapeHTML = (str) => String(str).replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+
+            // Split by URLs first so we don't HTML escape the '&' inside complex URLs before matching
+            const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)/gi;
+            const parts = text.split(urlRegex);
+
+            return parts.map(part => {
+                if (part.match(/^(?:https?:\/\/|www\.)/i)) {
+                    let href = part.match(/^https?:\/\//i) ? part : 'https://' + part;
+                    let display = part.replace(/^https?:\/\/(www\.)?/i, '').replace(/^www\./i, '');
+                    if (display.length > 25) display = display.substring(0, 22) + '...';
+
+                    return `<a href="${escapeHTML(href)}" target="_blank" class="inline-block bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-black shadow-sm hover:bg-indigo-200 hover:text-indigo-900 transition-all cursor-pointer no-underline align-middle border border-indigo-200 m-0.5" onclick="event.stopPropagation()">${escapeHTML(display)}</a>`;
+                }
+                return escapeHTML(part);
+            }).join('');
+        }
+
+        window.copyCode = (e, code) => {
+            e.stopPropagation();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(code).then(() => showToast("Code copied to clipboard!", "success"));
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast("Code copied to clipboard!", "success");
+                } catch (err) {
+                    showToast("Failed to copy code", "error");
+                }
+                document.body.removeChild(textArea);
+            }
+        };
+
+        // --- Auth & Listeners ---
+        async function initApp() {
+            try { await signInAnonymously(auth); } catch (e) { document.getElementById('auth-warning').classList.remove('hidden'); }
+            onAuthStateChanged(auth, (user) => {
+                currentUser.uid = user ? user.uid : "guest-" + Math.random().toString(36).substr(2, 9);
+
+                const storedName = sessionStorage.getItem('trainx_name');
+                const storedRole = sessionStorage.getItem('trainx_role');
+
+                if (storedName && storedRole) {
+                    currentUser.name = storedName;
+                    currentUser.role = storedRole;
+                    document.getElementById('user-display').innerText = `${currentUser.name} (${currentUser.role})`;
+
+                    const newReqBtn = document.getElementById('new-request-btn');
+                    if (currentUser.role === 'PM') {
+                        newReqBtn.classList.add('hidden');
+                    } else {
+                        newReqBtn.classList.remove('hidden');
+                    }
+                    startListening();
+                } else {
+                    document.getElementById('login-modal').classList.remove('hidden');
                 }
             });
         }
 
-        function loadAllUsers() {
-            onSnapshot(collection(db, "users"), (snap) => {
-                dbUsers = [];
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    if(d.name) dbUsers.push(d.name);
-                });
+        window.handleLogin = () => {
+            const nameInput = document.getElementById('user-name').value.trim().toUpperCase();
+            const roleInput = document.querySelector('input[name="user-role"]:checked');
+            if (!nameInput || !roleInput) { showToast("Name and Role required!", "warning"); return; }
+
+            currentUser.name = nameInput;
+            currentUser.role = roleInput.value;
+
+            sessionStorage.setItem('trainx_name', currentUser.name);
+            sessionStorage.setItem('trainx_role', currentUser.role);
+
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('user-display').innerText = `${currentUser.name} (${currentUser.role})`;
+
+            // Adjust UI based on Role
+            const newReqBtn = document.getElementById('new-request-btn');
+            if (currentUser.role === 'PM') {
+                newReqBtn.classList.add('hidden');
+            } else {
+                newReqBtn.classList.remove('hidden');
+            }
+
+            startListening();
+        };
+
+        function startListening() {
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'requests'));
+            onSnapshot(q, (snapshot) => {
+                allRequests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderBoard();
+            });
+
+            const notesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'globalNotes', 'main');
+            onSnapshot(notesDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const notesArea = document.getElementById('general-notes');
+                    if (document.activeElement !== notesArea) {
+                        notesArea.value = docSnap.data().text || "";
+                        if (notesArea.viewerEl) notesArea.dispatchEvent(new Event('blur'));
+                    }
+                }
             });
         }
 
-        function isOverdue(dateStr) {
-            const target = new Date(dateStr);
-            const today = new Date();
-            target.setHours(0,0,0,0);
-            today.setHours(0,0,0,0);
-            return target < today; 
+        window.triggerSearch = () => {
+            renderBoard();
+        };
+
+        let notesTimeout;
+        window.saveGeneralNotes = (text) => {
+            clearTimeout(notesTimeout);
+            notesTimeout = setTimeout(async () => {
+                const notesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'globalNotes', 'main');
+                try {
+                    await setDoc(notesDocRef, { text, updatedAt: serverTimestamp() }, { merge: true });
+                } catch (err) {
+                    console.error("Error saving notes:", err);
+                }
+            }, 1000);
+        };
+
+        async function generateRequestCode(brandName) {
+            const brand = brands[brandName];
+            const now = new Date();
+            const year = now.getFullYear();
+            const dateStr = `${year}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'requests'));
+            const snap = await getDocs(q);
+            const count = snap.docs.filter(d => d.data().brand === brandName && d.data().requestCode?.includes(`-${year}`)).length;
+            return `${brand.code}-${dateStr}-${String(count + 1).padStart(4, '0')}`;
         }
 
-        function renderBoard() {
-            const brandFilter = document.getElementById('filter-brand').value || document.getElementById('mobile-filter-brand').value;
-            const authorFilter = document.getElementById('filter-author').value || document.getElementById('mobile-filter-author').value;
-            
-            const cols = { 
-                'Pending': document.getElementById('col-pending'), 
-                'Ongoing': document.getElementById('col-ongoing'), 
-                'Closed': document.getElementById('col-closed'),
-                'Archived': document.getElementById('col-archived')
-            };
+        window.saveRequest = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            const reqId = document.getElementById('request-id').value;
+            const btn = document.getElementById('save-btn');
+            btn.disabled = true;
 
-            Object.values(cols).forEach(c => { if(c) c.innerHTML = ''; });
-            const counts = { 'Pending': 0, 'Ongoing': 0, 'Closed': 0, 'Archived': 0 };
+            try {
+                const payload = {
+                    ...data,
+                    updatedAt: serverTimestamp(),
+                    moe_irs: !!data.moe_irs,
+                    sfa: !!data.sfa,
+                    track_records: !!data.track_records,
+                    mainTrainersCount: parseInt(data.mainTrainersCount) || 0,
+                    assistantTrainersCount: parseInt(data.assistantTrainersCount) || 0
+                };
 
-            allRequests.sort((a,b) => new Date(a.closingDate) - new Date(b.closingDate)).forEach(req => {
-                if (brandFilter && req.brand !== brandFilter) return;
-                if (authorFilter && req.authorName !== authorFilter) return;
-                
-                const status = cols[req.status] ? req.status : 'Pending';
-                counts[status]++;
-                
-                const overdue = isOverdue(req.closingDate) && status !== 'Closed' && status !== 'Archived';
-                const isUrgent = isBusinessDayUrgent(req.closingDate) && status !== 'Closed' && status !== 'Archived' && !overdue;
-                
-                const myName = userData.name.replace(/\s/g, '');
-                const myRole = userData.role.replace(/\s/g, '');
-                
-                let latestMentionTime = null;
-                if(req.comments) {
-                    req.comments.forEach(c => {
-                        if(c.text.includes(`@${myName}`) || c.text.includes(`@${myRole}`)) {
-                            if(!latestMentionTime || c.timestamp > latestMentionTime) {
-                                latestMentionTime = c.timestamp;
-                            }
+                // Manual validation for the core textareas (PM has these fields disabled, so FormData won't include them)
+if (currentUser.role !== 'PM') {
+    if (!data.targetGroup?.trim() || !data.trainerQualifications?.trim() || !data.programmeDuration?.trim()) {
+        showToast("Please complete all required core text fields.", "warning");
+        btn.disabled = false;
+        return;
+    }
+} else {
+    // PM: validate using existing saved values (since core fields are disabled and omitted from FormData)
+    if (reqId) {
+        const existing = allRequests.find(r => r.id === reqId);
+        if (!existing?.targetGroup?.trim() || !existing?.trainerQualifications?.trim() || !existing?.programmeDuration?.trim()) {
+            showToast("Core details are incomplete. Ask EC/AEC to fill required fields first.", "warning");
+            btn.disabled = false;
+            return;
+        }
+    }
+}
+
+                if (reqId) {
+                    const existing = allRequests.find(r => r.id === reqId);
+
+                    // Update brand code prefix if the brand was changed
+                    let finalRequestCode = existing.requestCode;
+                    if (data.brand && existing.brand !== data.brand && finalRequestCode) {
+                        const parts = finalRequestCode.split('-');
+                        if (parts.length > 0) {
+                            parts[0] = brands[data.brand].code;
+                            finalRequestCode = parts.join('-');
+                        }
+                    }
+
+                    // Preserve fields that a user might not have access to (if disabled)
+                    if (currentUser.role === 'PM') {
+                        Object.assign(payload, {
+                            brand: existing.brand,
+                            school: existing.school,
+                            programme: existing.programme,
+                            closingDate: existing.closingDate,
+                            ec: existing.ec,
+                            aec: existing.aec,
+                            mainTrainersCount: existing.mainTrainersCount,
+                            assistantTrainersCount: existing.assistantTrainersCount,
+                            moe_irs: existing.moe_irs,
+                            sfa: existing.sfa,
+                            track_records: existing.track_records,
+                            targetGroup: existing.targetGroup,
+                            trainerQualifications: existing.trainerQualifications,
+                            programmeDuration: existing.programmeDuration,
+                            venue: existing.venue
+                        });
+                    } else if (currentUser.role === 'EC' || currentUser.role === 'AEC') {
+                        Object.assign(payload, {
+                            assignedMainTrainers: existing.assignedMainTrainers || '',
+                            assignedAsstTrainers: existing.assignedAsstTrainers || ''
+                        });
+                    }
+
+                    Object.assign(payload, {
+                        comments: existing.comments || [],
+                        requestCode: finalRequestCode,
+                        status: existing.status,
+                        creatorName: existing.creatorName,
+                        creatorId: existing.creatorId
+                    });
+
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', reqId), payload);
+                    showToast("Request Synced", "success");
+                } else {
+                    Object.assign(payload, {
+                        createdAt: serverTimestamp(),
+                        creatorId: currentUser.uid,
+                        creatorName: currentUser.name,
+                        status: "OPEN",
+                        comments: [],
+                        requestCode: await generateRequestCode(data.brand)
+                    });
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'requests'), payload);
+                    showToast("Request Filed", "success");
+                }
+                isFormDirty = false;
+                closeModal('request-modal');
+            } catch (err) { showToast("Save Error", "error"); }
+            finally { btn.disabled = false; }
+        };
+
+        window.addComment = async () => {
+            const reqId = document.getElementById('request-id').value;
+            const input = document.getElementById('new-comment');
+            const text = input.value.trim();
+            if (!text || !reqId) return;
+            const req = allRequests.find(r => r.id === reqId);
+            const updated = [...(req.comments || []), { sender: currentUser.name, text, timestamp: new Date().toISOString() }];
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', reqId), { comments: updated });
+            input.value = '';
+            renderComments(updated);
+        };
+
+        window.onDragStart = (e, id) => e.dataTransfer.setData("requestId", id);
+        window.onDragOver = (e) => e.preventDefault();
+        window.onDrop = async (e, newStatus) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData("requestId");
+            const req = allRequests.find(r => r.id === id);
+            if (!req) return;
+
+            if (newStatus === "CLOSED" && req.creatorName !== currentUser.name) return showToast("Only creator can close", "warning");
+
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', id), { status: newStatus });
+            showToast(`Moved to ${newStatus}`, "info");
+        };
+
+        window.renderBoard = () => {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const columns = { OPEN: [], IN_PROGRESS: [], CLOSED: [], SKIPPED: [] };
+            allRequests.forEach(req => {
+                const text = [req.requestCode, req.school, req.programme, req.brand, req.creatorName, req.targetGroup].join(' ').toLowerCase();
+                if (!search || text.includes(search)) columns[req.status].push(req);
+            });
+
+            // Sort OPEN column: nearest to today first, then older creations first
+            columns.OPEN.sort((a, b) => {
+                const dateA = new Date(a.closingDate || '9999-12-31').getTime();
+                const dateB = new Date(b.closingDate || '9999-12-31').getTime();
+                if (dateA !== dateB) return dateA - dateB;
+                const timeA = a.createdAt?.seconds || 0;
+                const timeB = b.createdAt?.seconds || 0;
+                return timeA - timeB;
+            });
+
+            Object.keys(columns).forEach(status => {
+                const container = document.getElementById(`col-${status}`);
+                document.getElementById(`count-${status}`).innerText = columns[status].length;
+                container.innerHTML = columns[status].map(req => {
+                    const brand = brands[req.brand] || { color: 'rgba(200,200,200,0.5)', text: 'black' };
+                    const isActive = status === "OPEN" || status === "IN_PROGRESS";
+                    const pastDue = isActive && isPastDue(req.closingDate);
+                    const dueToday = isActive && isDueToday(req.closingDate);
+                    const urgent = isActive && isNextWorkingDay(req.closingDate);
+                    const countdown = getWorkingDaysRemaining(req.closingDate, status);
+
+                    let glowClass = '';
+                    let badgeHtml = '';
+                    if (pastDue) {
+                        glowClass = 'pastdue-glow';
+                        badgeHtml = '<span class="bg-white text-rose-600 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-sm">OVERDUE</span>';
+                    } else if (dueToday) {
+                        glowClass = 'duetoday-glow';
+                        badgeHtml = '<span class="bg-white text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-bold shadow-sm">DUE TODAY</span>';
+                    } else if (urgent) {
+                        glowClass = 'urgent-glow';
+                        badgeHtml = '<span class="bg-white text-black px-1.5 py-0.5 rounded text-[10px] font-bold shadow-sm">URGENT</span>';
+                    }
+
+                    return `
+                        <div draggable="true" ondragstart="onDragStart(event, '${req.id}')" onclick="openEditModal('${req.id}')"
+                             class="glass-card mb-3 p-4 cursor-pointer transition-all hover:scale-[1.02] active:scale-95 w-full h-[140px] flex flex-col justify-between uppercase ${glowClass}"
+                             style="background: ${brand.color}; color: ${brand.text};">
+                            <div class="flex-1 overflow-hidden">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="text-xs font-bold opacity-90 cursor-pointer hover:bg-black/10 px-1 -ml-1 rounded transition-colors" onclick="copyCode(event, '${req.requestCode}')" title="Click to copy code">${req.requestCode}</span>
+                                    ${badgeHtml}
+                                </div>
+                                <h4 class="font-bold text-sm leading-tight line-clamp-2">${linkifyText(req.school)}</h4>
+                                <p class="text-xs italic opacity-90 truncate mt-1">${linkifyText(req.programme)}</p>
+                            </div>
+                            <div class="pt-2 border-t border-white/20 flex justify-between items-end text-xs font-bold shrink-0">
+                                <span>${linkifyText(req.creatorName)}</span>
+                                <div class="text-right">
+                                    <div>${req.closingDate}</div>
+                                    <div class="text-[9px] opacity-80 mt-0.5">${countdown}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        };
+
+        // --- Modal Mode Helpers (NEW) ---
+        function applyRolePermissions(isClosed) {
+            const form = document.getElementById('request-form');
+            const pmFields = ['assignedMainTrainers', 'assignedAsstTrainers'];
+            const skipDisable = ['new-comment', 'save-btn', 'delete-btn', 'edit-btn'];
+
+            Array.from(form.elements).forEach(input => {
+                if (skipDisable.includes(input.id)) return;
+
+                if (isClosed) {
+                    input.disabled = true;
+                    return;
+                }
+
+                if (currentUser.role === 'PM') {
+                    // PMs can only edit PM fields
+                    input.disabled = !pmFields.includes(input.name);
+                } else if (currentUser.role === 'EC' || currentUser.role === 'AEC') {
+                    // EC/AEC can edit core fields, but NOT PM fields
+                    input.disabled = pmFields.includes(input.name);
+                } else {
+                    input.disabled = false;
+                }
+            });
+
+            // Re-evaluate assistant trainer field based on value (only if PM is editing)
+            if (!isClosed && currentUser.role === 'PM') {
+                const asstCount = parseInt(form.elements['assistantTrainersCount']?.value) || 0;
+                if (asstCount === 0) {
+                    document.getElementById('pm-asst-field').disabled = true;
+                }
+            }
+        }
+
+        function setModalMode({ viewOnly, req }) {
+            modalIsViewOnly = viewOnly;
+
+            const form = document.getElementById('request-form');
+            const saveBtn = document.getElementById('save-btn');
+            const deleteBtn = document.getElementById('delete-btn');
+            const editBtn = document.getElementById('edit-btn');
+
+            const hasId = !!document.getElementById('request-id').value;
+            const isClosed = req?.status === "CLOSED";
+
+            // EDIT button visible only for existing and not closed
+            if (editBtn) editBtn.style.display = (hasId && !isClosed) ? 'block' : 'none';
+
+            // Closed stays as original (no actions)
+            if (isClosed) {
+                saveBtn.style.display = 'none';
+                deleteBtn.style.display = 'none';
+                if (editBtn) editBtn.style.display = 'none';
+
+                Array.from(form.elements).forEach(el => { el.disabled = true; });
+                saveBtn.disabled = true;
+                deleteBtn.disabled = true;
+                return;
+            }
+
+            // New request => edit mode
+            if (!hasId) {
+                applyRolePermissions(false);
+                saveBtn.style.display = 'block';
+                deleteBtn.style.display = 'block';
+                saveBtn.disabled = false;
+                deleteBtn.disabled = false;
+                saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                deleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            // Existing request
+            saveBtn.style.display = 'block';
+            deleteBtn.style.display = 'block';
+
+            if (viewOnly) {
+                // View-only: disable all fields but keep EDIT clickable
+                Array.from(form.elements).forEach(el => {
+                    if (el.id === 'edit-btn') return;
+                    el.disabled = true;
+                });
+
+                saveBtn.disabled = true;
+                deleteBtn.disabled = true;
+
+                saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                deleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                // Edit: restore role permissions
+                applyRolePermissions(false);
+
+                saveBtn.disabled = false;
+                deleteBtn.disabled = false;
+
+                saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                deleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        window.enableEditMode = () => {
+            if (!activeModalReq) return;
+            setModalMode({ viewOnly: false, req: activeModalReq });
+        };
+
+        window.openEditModal = (id = null) => {
+            const modal = document.getElementById('request-modal');
+            const form = document.getElementById('request-form');
+            form.reset();
+            isFormDirty = false;
+            document.getElementById('request-id').value = id || '';
+
+            document.getElementById('pm-assignment-section').classList.toggle('hidden', !id);
+            document.getElementById('comment-section').classList.toggle('hidden', !id);
+
+            let req = null;
+
+            if (id) {
+                req = allRequests.find(r => r.id === id);
+                activeModalReq = req || null;
+
+                if (req) {
+                    Object.keys(req).forEach(k => {
+                        if (form.elements[k]) {
+                            if (form.elements[k].type === 'checkbox') form.elements[k].checked = !!req[k];
+                            else form.elements[k].value = req[k];
                         }
                     });
+                    renderComments(req.comments || []);
                 }
 
-                let showBadge = false;
-                if (latestMentionTime) {
-                    const lastSeen = localStorage.getItem(`trainx_seen_${currentUser.uid}_${req.id}`);
-                    if (!lastSeen || new Date(latestMentionTime) > new Date(lastSeen)) {
-                        showBadge = true;
-                    }
-                }
+                // ✅ Existing request opens VIEW-ONLY by default (unless CLOSED which remains locked)
+                setModalMode({ viewOnly: true, req });
 
-                const isNew = (new Date() - new Date(req.createdAt)) < 3600000; 
-
-                let cardClass = `glass-panel rounded-xl overflow-hidden cursor-grab active:cursor-grabbing hover:translate-y-[-2px] transition-all duration-200 group relative`;
-                
-                if (overdue) {
-                    cardClass += ` grayscale opacity-60`;
-                } else if (showBadge) {
-                    cardClass += ` ring-2 ring-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]`;
-                } else if (isUrgent) {
-                    cardClass += ` animate-pulse-urgent`;
-                }
-
-                const card = document.createElement('div');
-                card.className = cardClass;
-                card.draggable = true;
-                card.dataset.id = req.id;
-                
-                card.innerHTML = `
-                    <div class="h-2 w-full ${BRAND_BG[req.brand] || 'bg-slate-600'}"></div>
-                    <div class="p-4" onclick="openDetails('${req.id}')">
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="flex gap-2">
-                                <span class="text-[10px] font-mono text-[var(--text-muted)] bg-white/5 px-1.5 py-0.5 rounded">${req.ticketId}</span>
-                                ${isNew ? '<span class="text-[9px] font-bold bg-indigo-500 text-white px-1.5 py-0.5 rounded-full">NEW</span>' : ''}
-                                ${overdue ? '<span class="text-[9px] font-bold bg-slate-500 text-white px-1.5 py-0.5 rounded-full">EXPIRED</span>' : ''}
-                                ${showBadge && !overdue ? '<span class="text-[9px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded-full animate-bounce">MENTIONED</span>' : ''}
-                            </div>
-                            <div class="flex gap-1">
-                                ${showBadge ? '<i class="fa-solid fa-at text-purple-400 text-xs" title="You are tagged"></i>' : ''}
-                                ${isUrgent ? '<i class="fa-solid fa-fire text-red-500 text-xs animate-bounce"></i>' : ''}
-                            </div>
-                        </div>
-                        <h4 class="text-sm font-bold text-[var(--text-main)] leading-snug mb-1 group-hover:text-indigo-400 transition-colors">${req.school}</h4>
-                        <p class="text-xs text-[var(--text-muted)] mb-3 truncate">${req.programme}</p>
-                        <div class="flex items-center justify-between mt-auto pt-2 border-t border-[var(--glass-border)]">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center text-[8px] border border-white/10 text-white">${getInitials(req.authorName)}</div>
-                                <span class="text-[10px] text-[var(--text-muted)]">${formatDate(req.closingDate)}</span>
-                            </div>
-                            <div class="text-[10px] text-[var(--text-muted)]"><i class="fa-regular fa-comment ml-1"></i> ${req.comments ? req.comments.length : 0}</div>
-                        </div>
-                    </div>
-                `;
-                card.addEventListener('dragstart', e => { e.dataTransfer.setData("text/plain", req.id); e.target.classList.add('dragging'); });
-                if(cols[status]) cols[status].appendChild(card);
-            });
-
-            document.getElementById('count-pending').innerText = counts.Pending;
-            document.getElementById('count-ongoing').innerText = counts.Ongoing;
-            document.getElementById('count-closed').innerText = counts.Closed;
-            document.getElementById('count-archived').innerText = counts.Archived;
-        }
-
-        const commentInput = document.getElementById('new-comment');
-        const suggestionsBox = document.getElementById('tag-suggestions');
-
-        commentInput.addEventListener('input', (e) => {
-            const val = e.target.value;
-            const cursorPos = e.target.selectionStart;
-            const textBeforeCursor = val.slice(0, cursorPos);
-            const match = textBeforeCursor.match(/@([a-zA-Z0-9\s]*)$/);
-
-            if (match) {
-                const query = match[1].toLowerCase();
-                const allTaggables = [
-                    ...dbUsers.map(n => n.replace(/\s/g, '')), 
-                    ...STANDARD_ROLES.map(r => r.replace(/\s/g, ''))
-                ];
-                const uniqueTaggables = [...new Set(allTaggables)];
-                
-                // Exclude Self
-                const myTag = userData.name.replace(/\s/g, '');
-                
-                const filtered = uniqueTaggables.filter(t => 
-                    t.toLowerCase().startsWith(query) && 
-                    t.toLowerCase() !== myTag.toLowerCase()
-                );
-
-                if (filtered.length > 0) {
-                    showSuggestions(filtered, match[0]); 
-                } else {
-                    suggestionsBox.classList.add('hidden');
-                }
             } else {
-                suggestionsBox.classList.add('hidden');
+                activeModalReq = null;
+                form.elements['mainTrainersCount'].value = 1;
+                form.elements['assistantTrainersCount'].value = 0;
+
+                // ✅ New request opens EDIT mode
+                setModalMode({ viewOnly: false, req: null });
             }
-        });
 
-        commentInput.addEventListener('blur', () => {
-            setTimeout(() => suggestionsBox.classList.add('hidden'), 200);
-        });
-
-        function showSuggestions(list, currentMatch) {
-            suggestionsBox.innerHTML = '';
-            list.forEach(tag => {
-                const div = document.createElement('div');
-                div.className = 'px-4 py-2 hover:bg-white/10 cursor-pointer text-sm text-[var(--text-main)] border-b border-white/5 last:border-0';
-                div.innerHTML = `<span class="text-indigo-400">@</span>${tag}`;
-                div.onclick = () => selectTag(tag, currentMatch);
-                suggestionsBox.appendChild(div);
+            // Update viewer overlays for all textareas
+            document.querySelectorAll('textarea').forEach(ta => {
+                if (ta.viewerEl) ta.dispatchEvent(new Event('blur'));
             });
-            suggestionsBox.classList.remove('hidden');
-        }
 
-        function selectTag(tag, currentMatch) {
-            const val = commentInput.value;
-            const cursorPos = commentInput.selectionStart;
-            const textBefore = val.slice(0, cursorPos);
-            const textAfter = val.slice(cursorPos);
-            const newTextBefore = textBefore.substring(0, textBefore.length - currentMatch.length) + `@${tag} `;
-            commentInput.value = newTextBefore + textAfter;
-            suggestionsBox.classList.add('hidden');
-            commentInput.focus();
-        }
-
-        function handleTicketSearch(e) {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim().toUpperCase();
-                if (!query) return;
-                
-                // Find by current Ticket ID OR alias
-                const req = allRequests.find(r => 
-                    r.ticketId.toUpperCase() === query || 
-                    (r.previousTicketIds && r.previousTicketIds.includes(query))
-                );
-                
-                if (req) {
-                    openDetails(req.id);
-                    e.target.value = '';
-                } else {
-                    showToast("No ticket found.", "error");
-                }
-            }
-        }
-        document.getElementById('ticket-search').addEventListener('keypress', handleTicketSearch);
-        document.getElementById('mobile-ticket-search').addEventListener('keypress', handleTicketSearch);
-
-        document.getElementById('comment-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('new-comment');
-            const text = input.value;
-            const reqId = document.getElementById('details-modal').dataset.reqId;
-            if (!text.trim()) return;
-
-            const newComment = {
-                id: crypto.randomUUID(),
-                author: userData.name,
-                role: userData.role,
-                text: text,
-                timestamp: new Date().toISOString(),
-                replyTo: replyingTo 
-            };
-
-            cancelReply(); 
-            input.value = '';
-            suggestionsBox.classList.add('hidden');
-
-            try {
-                await updateDoc(doc(db, "requests", reqId), { comments: arrayUnion(newComment) });
-            } catch (err) { showToast("Error adding note", 'error'); }
-        });
-
-        window.startReply = (commentId, author, text) => {
-            replyingTo = { id: commentId, author, snippet: text.substring(0, 50) + '...' };
-            const ctx = document.getElementById('reply-context');
-            ctx.querySelector('span').innerText = `Replying to ${author}: "${replyingTo.snippet}"`;
-            ctx.classList.remove('hidden');
-            const input = document.getElementById('new-comment');
-            input.focus();
+            modal.classList.remove('hidden');
         };
 
-        window.cancelReply = () => {
-            replyingTo = null;
-            document.getElementById('reply-context').classList.add('hidden');
+        window.deleteRequest = async () => {
+            const id = document.getElementById('request-id').value;
+            if (id && confirm("Permanently delete this entry?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', id));
+                showToast("Request Deleted", "error");
+                closeModal('request-modal');
+            }
         };
 
         function renderComments(comments) {
+            document.getElementById('comments-list').innerHTML = comments.map(c => {
+                const d = new Date(c.timestamp);
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = d.toLocaleString('default', { month: 'long' });
+                const year = d.getFullYear();
+                const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+                return `
+                <div class="mb-4 p-4 bg-white/80 rounded-xl shadow-sm border border-slate-200/50">
+                    <div class="flex justify-between items-start text-xs font-bold text-indigo-900 uppercase mb-2">
+                        <span>${c.sender}</span>
+                        <span class="opacity-60 text-right leading-tight font-medium text-slate-500">${day} ${month} ${year}<br>${time}</span>
+                    </div>
+                    <div class="text-sm text-slate-700 break-words leading-relaxed">${linkifyText(c.text)}</div>
+                </div>
+            `}).join('');
+
             const list = document.getElementById('comments-list');
-            list.innerHTML = '';
-            
-            const modal = document.getElementById('details-modal');
-            const reqId = modal.dataset.reqId;
-            const req = allRequests.find(r => r.id === reqId);
-            const overdue = req ? (isOverdue(req.closingDate) && req.status !== 'Closed' && req.status !== 'Archived') : false;
+            list.scrollTop = list.scrollHeight;
+        }
 
-            if (!comments || comments.length === 0) return list.innerHTML = '<p class="text-center text-xs text-[var(--text-muted)] italic py-4">No notes yet. Be the first.</p>';
+        window.closeModal = (id) => { document.getElementById(id).classList.add('hidden'); isFormDirty = false; };
+        document.addEventListener('input', (e) => { if (document.getElementById('request-form').contains(e.target)) isFormDirty = true; });
+        window.onclick = (e) => { if (e.target.id === 'request-modal' && !isFormDirty) closeModal('request-modal'); };
 
-            comments.forEach(c => {
-                const isMe = c.author === userData.name;
-                const div = document.createElement('div');
-                div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} group`;
-                
-                let replyBlock = '';
-                if (c.replyTo) {
-                    replyBlock = `
-                        <div class="text-[10px] text-[var(--text-muted)] mb-1 pl-2 border-l-2 border-indigo-500 opacity-70">
-                            <i class="fa-solid fa-reply mr-1"></i> ${c.replyTo.author}: "${c.replyTo.snippet}"
-                        </div>
-                    `;
+        window.updateAsstFieldState = () => {
+            if (currentUser.role === 'PM') {
+                const asstCount = document.querySelector('input[name="assistantTrainersCount"]').value;
+                const asst = document.getElementById('pm-asst-field');
+                asst.disabled = (asstCount == 0 || asstCount === '');
+                if (asst.viewerEl) asst.dispatchEvent(new Event('blur'));
+            }
+        };
+
+        function initTextareaViewers() {
+            document.querySelectorAll('textarea').forEach(ta => {
+                const viewer = document.createElement('div');
+                viewer.className = ta.className;
+                viewer.classList.add('textarea-viewer', 'hidden', 'cursor-pointer');
+                viewer.classList.remove('resize-none');
+
+                viewer.style.cssText = ta.style.cssText;
+
+                // Inherit min-height dynamically to prevent jumping
+                if (ta.hasAttribute('rows')) {
+                    const rows = parseInt(ta.getAttribute('rows'));
+                    viewer.style.minHeight = `calc(${rows * 1.5}em + 2rem)`;
                 }
 
-                const replyBtn = !overdue ? `
-                    <button onclick="startReply('${c.id || ''}', '${c.author}', '${c.text.replace(/'/g, "\\'")}')" class="text-[10px] text-indigo-400 hover:text-indigo-300 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <i class="fa-solid fa-reply"></i> Reply
-                    </button>
-                ` : '';
+                ta.parentNode.insertBefore(viewer, ta.nextSibling);
 
-                div.innerHTML = `
-                    <div class="flex items-baseline gap-2 mb-1">
-                        <span class="text-xs font-bold text-[var(--text-muted)]">${c.author}</span>
-                        <span class="text-[10px] text-[var(--text-muted)] opacity-70">${new Date(c.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        ${replyBtn}
-                    </div>
-                    ${replyBlock}
-                    <div class="glass-panel px-4 py-2 rounded-2xl ${isMe ? 'bg-indigo-600/20 border-indigo-500/30 rounded-tr-none' : 'bg-white/5 rounded-tl-none'} max-w-[90%]">
-                        <p class="text-sm text-[var(--text-main)] whitespace-pre-wrap">${c.text}</p>
-                    </div>
-                `;
-                list.appendChild(div);
+                const updateView = () => {
+                    const val = ta.value.trim();
+                    if (!val) {
+                        viewer.innerHTML = `<span class="opacity-40 italic">${ta.placeholder || ''}</span>`;
+                    } else {
+                        viewer.innerHTML = linkifyText(ta.value);
+                    }
+                    if (ta.disabled) {
+                        viewer.classList.add('opacity-70', 'cursor-not-allowed');
+                        viewer.classList.remove('cursor-pointer');
+                        if (!ta.id.includes('general-notes')) viewer.style.backgroundColor = '#f1f5f9';
+                    } else {
+                        viewer.classList.remove('opacity-70', 'cursor-not-allowed');
+                        viewer.classList.add('cursor-pointer');
+                        if (!ta.id.includes('general-notes')) {
+                            viewer.style.backgroundColor = ta.classList.contains('bg-white/80') ? 'rgba(255,255,255,0.8)' : '#ffffff';
+                        }
+                    }
+                };
+
+                viewer.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'A') return; // Do not block clicking links
+                    if (ta.disabled) return;
+                    viewer.classList.add('hidden');
+                    ta.classList.remove('hidden');
+                    ta.focus();
+                });
+
+                ta.addEventListener('blur', () => {
+                    updateView();
+                    ta.classList.add('hidden');
+                    viewer.classList.remove('hidden');
+                });
+
+                ta.viewerEl = viewer;
             });
         }
 
-        window.switchAuthMode = (m) => {
-            if(m === 'signup') { document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden'); }
-            else { document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); }
+        window.onload = () => {
+            initTextareaViewers();
+            initApp();
         };
-        window.togglePassword = (id) => { const el = document.getElementById(id); el.type = el.type === 'password' ? 'text' : 'password'; };
-        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
-        
-        window.openDetails = (id) => {
-            const req = allRequests.find(r => r.id === id);
-            if (!req) return;
-            
-            localStorage.setItem(`trainx_seen_${currentUser.uid}_${id}`, new Date().toISOString());
-            renderBoard();
+    </script>
 
-            document.getElementById('new-comment').value = '';
-            // Reset height of textarea
-            document.getElementById('new-comment').style.height = ''; 
-            cancelReply();
+    <style>
+        :root { --glass: rgba(255, 255, 255, 0.7); --border: rgba(255, 255, 255, 0.3); }
+        body { background: radial-gradient(circle at top left, #f8fafc, #e2e8f0); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .glass-panel { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
+        .glass-card { border-radius: 0.75rem; border: 1px solid rgba(255, 255, 255, 0.3); box-sizing: border-box; }
 
-            const modal = document.getElementById('details-modal');
-            modal.dataset.reqId = id;
-            document.getElementById('modal-header').style.background = `linear-gradient(to right, #0f172a, #1e293b)`;
-            document.getElementById('detail-ticket').innerText = req.ticketId;
-            document.getElementById('detail-status').innerText = req.status;
-            document.getElementById('detail-school').innerText = req.school;
-            document.getElementById('detail-programme').innerText = req.programme;
-            document.getElementById('detail-author').innerText = req.authorName;
-            document.getElementById('detail-date').innerText = formatDate(req.closingDate);
-            document.getElementById('detail-link').href = req.link || '#';
-            
-            const actions = document.getElementById('creator-actions');
-            const btnDelete = document.getElementById('btn-delete');
-            const btnEdit = document.getElementById('btn-edit');
-            
-            if (currentUser.uid === req.createdBy) {
-                actions.classList.remove('hidden');
-                btnEdit.onclick = () => openEditModal(req);
-                if (req.status === 'Pending') {
-                    btnDelete.classList.remove('hidden');
-                    btnDelete.onclick = () => deleteRequest(req.id);
-                } else {
-                    btnDelete.classList.add('hidden');
-                }
-            } else {
-                actions.classList.add('hidden');
-            }
+        .urgent-glow { animation: urgent-pulse 2s infinite; }
+        @keyframes urgent-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); } 50% { box-shadow: 0 0 15px 4px rgba(250, 204, 21, 0.6); } }
 
-            const overdue = isOverdue(req.closingDate) && req.status !== 'Closed' && req.status !== 'Archived';
-            const commentInput = document.getElementById('new-comment');
-            const submitBtn = document.getElementById('comment-form').querySelector('button[type="submit"]');
+        .pastdue-glow { animation: pastdue-pulse 2s infinite; }
+        @keyframes pastdue-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } 50% { box-shadow: 0 0 15px 4px rgba(225, 29, 72, 0.8); } }
 
-            if (overdue) {
-                commentInput.disabled = true;
-                commentInput.value = "";
-                commentInput.placeholder = "Request expired. Comments disabled.";
-                submitBtn.classList.add('hidden');
-                cancelReply();
-            } else {
-                commentInput.disabled = false;
-                commentInput.value = "";
-                commentInput.placeholder = "Add a note (Type @Name to tag)...";
-                submitBtn.classList.remove('hidden');
-                cancelReply();
-            }
+        .duetoday-glow { animation: duetoday-pulse 2s infinite; }
+        @keyframes duetoday-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); } 50% { box-shadow: 0 0 15px 4px rgba(249, 115, 22, 0.8); } }
 
-            renderComments(req.comments);
-            modal.classList.remove('hidden');
-            
-            // Auto scroll to bottom of the SCROLL CONTAINER
-            setTimeout(() => {
-                const scrollContainer = document.getElementById('detail-scroll-container');
-                if (scrollContainer) {
-                    scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                }
-            }, 100);
-        };
+        .kanban-col { height: 75vh; overflow-y: auto; padding: 0.75rem; border-radius: 1rem; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.3); }
 
-        // --- Edit Logic ---
-        function openEditModal(req) {
-            document.getElementById('edit-req-id').value = req.id;
-            document.getElementById('edit-brand').value = req.brand;
-            document.getElementById('edit-date').value = req.closingDate;
-            document.getElementById('edit-school').value = req.school;
-            document.getElementById('edit-programme').value = req.programme;
-            document.getElementById('edit-link').value = req.link || '';
-            document.getElementById('edit-ticket-id').value = req.ticketId;
-            
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('edit-date').min = today;
-
-            closeModal('details-modal');
-            document.getElementById('edit-modal').classList.remove('hidden');
+        /* Unified Inputs - Guaranteeing Exact Same Height for Single Line */
+        select, input[type="text"], input[type="number"], input[type="date"] {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.85rem !important;
+            transition: all 0.2s;
+            font-size: 0.875rem; /* 14px text-sm */
+            width: 100%;
+            box-sizing: border-box;
+            color: #1e293b;
+            height: 44px;
         }
 
-        document.getElementById('edit-brand').addEventListener('change', (e) => {
-            const newBrand = e.target.value;
-            const currentId = document.getElementById('edit-ticket-id').value;
-            const parts = currentId.split('-');
-            if (parts.length >= 2) {
-                parts[0] = newBrand;
-                document.getElementById('edit-ticket-id').value = parts.join('-');
-            }
-        });
-
-        document.getElementById('edit-request-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-req-id').value;
-            const oldReq = allRequests.find(r => r.id === id);
-            
-            const updates = {
-                brand: document.getElementById('edit-brand').value,
-                ticketId: document.getElementById('edit-ticket-id').value,
-                closingDate: document.getElementById('edit-date').value,
-                school: document.getElementById('edit-school').value,
-                programme: document.getElementById('edit-programme').value,
-                link: document.getElementById('edit-link').value
-            };
-
-            const logMessages = [];
-            if (oldReq.brand !== updates.brand) logMessages.push(`Changed Brand from ${oldReq.brand} to ${updates.brand}`);
-            if (oldReq.ticketId !== updates.ticketId) {
-                logMessages.push(`Changed Ticket ID from ${oldReq.ticketId} to ${updates.ticketId}`);
-                updates.previousTicketIds = arrayUnion(oldReq.ticketId);
-            }
-            if (oldReq.closingDate !== updates.closingDate) logMessages.push(`Changed Date from ${formatDate(oldReq.closingDate)} to ${formatDate(updates.closingDate)}`);
-            if (oldReq.school !== updates.school) logMessages.push(`Changed School from ${oldReq.school} to ${updates.school}`);
-            if (oldReq.programme !== updates.programme) logMessages.push(`Changed Programme from ${oldReq.programme} to ${updates.programme}`);
-            if (oldReq.link !== updates.link) logMessages.push(`Updated Spec Link`);
-
-            if (logMessages.length > 0) {
-                updates.comments = arrayUnion(...logMessages.map(msg => ({
-                    id: crypto.randomUUID(),
-                    author: 'System',
-                    role: 'Log',
-                    text: `${msg} (by ${userData.name})`,
-                    timestamp: new Date().toISOString()
-                })));
-            }
-
-            try {
-                await updateDoc(doc(db, "requests", id), updates);
-                closeModal('edit-modal');
-                showToast("Request updated", "success");
-            } catch (err) { showToast("Error updating", "error"); }
-        });
-
-        async function deleteRequest(id) {
-            if(!confirm("Are you sure?")) return;
-            try {
-                await deleteDoc(doc(db, "requests", id));
-                closeModal('details-modal');
-                showToast("Deleted", "success");
-            } catch(err) {
-                showToast("Error deleting", "error");
-            }
+        /* Explicit padding for textareas to ensure breathing room */
+        textarea, .textarea-viewer {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 1rem !important;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            width: 100%;
+            box-sizing: border-box;
+            color: #1e293b;
+            line-height: 1.5 !important;
         }
 
-        window.toggleTheme = () => {
-            document.body.classList.toggle('light-mode');
-            const icon = document.getElementById('theme-icon');
-            icon.className = document.body.classList.contains('light-mode') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-        };
-
-        window.handleLogout = () => signOut(auth);
-        
-        function updateAuthorFilter() {
-            const s = document.getElementById('filter-author');
-            const ms = document.getElementById('mobile-filter-author');
-            const authors = [...new Set(allRequests.map(r => r.authorName))].sort();
-            const opts = `<option value="">All Authors</option>` + authors.map(a => `<option value="${a}">${a}</option>`).join('');
-            s.innerHTML = opts; ms.innerHTML = opts;
-        }
-        ['filter-brand', 'filter-author', 'mobile-filter-brand', 'mobile-filter-author'].forEach(id => document.getElementById(id).addEventListener('change', renderBoard));
-
-        window.allowDrop = (e) => { e.preventDefault(); };
-        window.dragEnter = (e) => { e.preventDefault(); e.currentTarget.classList.add('droppable-hover'); };
-        window.dragLeave = (e) => { e.currentTarget.classList.remove('droppable-hover'); };
-        window.drop = async (e, newStatus) => {
-            e.preventDefault(); e.currentTarget.classList.remove('droppable-hover');
-            const reqId = e.dataTransfer.getData("text/plain");
-            const req = allRequests.find(r => r.id === reqId);
-            
-            const role = userData.role;
-            if ((newStatus === 'Closed' || req.status === 'Closed') && role === 'Programme Manager') {
-                 if(newStatus !== 'Archived') return showToast("PMs cannot Close/Reopen requests.", "error");
-            }
-            if ((newStatus === 'Closed') && !['EC', 'AEC', 'Education Consultant', 'Assistant Education Consultant'].includes(role)) {
-                 return showToast("Only ECs/AECs can close requests.", "error");
-            }
-
-            try {
-                await updateDoc(doc(db, "requests", reqId), {
-                    status: newStatus,
-                    comments: arrayUnion({ id: crypto.randomUUID(), author: 'System', role: 'Bot', text: `Moved to ${newStatus} by ${userData.name}`, timestamp: new Date().toISOString() })
-                });
-            } catch (err) { showToast("Permission Denied", "error"); }
-        };
-
-        function showToast(msg, type) {
-            const t = document.getElementById('toast');
-            t.querySelector('span').innerText = msg;
-            t.classList.remove('translate-x-[150%]');
-            const i = t.querySelector('i');
-            if(type === 'error') { t.classList.replace('border-indigo-500', 'border-red-500'); i.className = 'fa-solid fa-circle-xmark text-red-400'; }
-            else { t.classList.replace('border-red-500', 'border-indigo-500'); i.className = 'fa-solid fa-circle-info text-indigo-400'; }
-            setTimeout(() => t.classList.add('translate-x-[150%]'), 3000);
+        textarea {
+            resize: vertical;
         }
 
-        function getInitials(n) { return n ? n.split(' ').map(c=>c[0]).join('').substring(0,2).toUpperCase() : '??'; }
-        function formatDate(d) { return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }); }
-        
-        function isBusinessDayUrgent(dateStr) {
-            const target = new Date(dateStr);
-            const now = new Date();
-            
-            target.setHours(0,0,0,0);
-            const today = new Date(now);
-            today.setHours(0,0,0,0);
-
-            const diffTime = target - today;
-            if (diffTime < 0) return true; 
-
-            const todayDay = today.getDay();
-            
-            const oneDay = 86400000;
-            const diffDays = Math.ceil(diffTime / oneDay);
-
-            if (todayDay === 5) { return diffDays <= 3; } 
-            else if (todayDay === 6) { return diffDays <= 2; } 
-            else { return diffDays <= 1; }
+        .textarea-viewer {
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
-        const pb = document.getElementById('profile-btn'); const pm = document.getElementById('profile-menu');
-        pb.addEventListener('click', e => { e.stopPropagation(); pm.classList.toggle('hidden'); });
-        document.addEventListener('click', e => { if(!pb.contains(e.target) && !pm.contains(e.target)) pm.classList.add('hidden'); });
+        .textarea-viewer:hover:not(.cursor-not-allowed) {
+            border-color: #94a3b8;
+        }
+
+        /* Lowkey Custom Chevron for Selects */
+        select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3e%3c/svg%3e") !important;
+            background-position: right 0.85rem center !important;
+            background-repeat: no-repeat !important;
+            background-size: 1rem 1rem !important;
+            padding-left: 0.85rem !important;
+            padding-right: 2.5rem !important;
+        }
+
+        select:focus, input:focus, textarea:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+        input:disabled, textarea:disabled, select:disabled { background-color: #f1f5f9; cursor: not-allowed; opacity: 0.7; }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* Button */
+        .macos-btn { background: #4f46e5; color: white; border-radius: 0.5rem; padding: 0.6rem 1.25rem; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; }
+        .macos-btn:hover { background: #4338ca; transform: translateY(-1px); }
+        .macos-btn:active { transform: translateY(0); }
+    </style>
+</head>
+<body class="text-slate-800 overflow-hidden selection:bg-indigo-100">
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 items-end pointer-events-none"></div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel p-8 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+            <h1 class="text-3xl font-black mb-1 text-indigo-900 tracking-tighter">TrainX</h1>
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Trainer Ecosystem</p>
+
+            <div id="auth-warning" class="hidden mb-4 p-2 bg-amber-100 rounded-lg text-xs font-bold text-amber-800">
+                GUEST MODE ACTIVE
+            </div>
+
+            <div class="mb-5">
+                <input type="text" id="user-name" placeholder="IDENTIFY YOURSELF" class="w-full text-center font-bold uppercase border border-slate-300 px-4 py-3 rounded-xl bg-white/60 focus:border-indigo-500 outline-none" onkeyup="if(event.key==='Enter') handleLogin()">
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 mb-6">
+                <label class="flex flex-col items-center p-3 border border-slate-200 bg-white/50 rounded-lg cursor-pointer hover:bg-white transition-all has-[:checked]:bg-indigo-600 has-[:checked]:border-indigo-600 has-[:checked]:text-white">
+                    <input type="radio" name="user-role" value="EC" class="sr-only">
+                    <span class="text-sm font-bold">EC</span>
+                </label>
+                <label class="flex flex-col items-center p-3 border border-slate-200 bg-white/50 rounded-lg cursor-pointer hover:bg-white transition-all has-[:checked]:bg-indigo-600 has-[:checked]:border-indigo-600 has-[:checked]:text-white">
+                    <input type="radio" name="user-role" value="AEC" class="sr-only">
+                    <span class="text-sm font-bold">AEC</span>
+                </label>
+                <label class="flex flex-col items-center p-3 border border-slate-200 bg-white/50 rounded-lg cursor-pointer hover:bg-white transition-all has-[:checked]:bg-indigo-600 has-[:checked]:border-indigo-600 has-[:checked]:text-white">
+                    <input type="radio" name="user-role" value="PM" class="sr-only">
+                    <span class="text-sm font-bold">PM</span>
+                </label>
+            </div>
+
+            <button onclick="handleLogin()" class="w-full macos-btn py-3 shadow-md shadow-indigo-200">INITIALIZE</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="px-6 py-4 flex items-center justify-between max-w-[1600px] mx-auto relative z-40 bg-white/30 border-b border-slate-200/50 backdrop-blur-md">
+        <div class="flex items-center gap-6">
+            <h2 class="text-2xl font-black text-indigo-900 tracking-tighter">TrainX</h2>
+            <div class="flex flex-col border-l border-slate-300 pl-4">
+                <span id="user-display" class="text-sm font-bold uppercase text-slate-600"></span>
+                <span class="text-xs font-semibold text-indigo-500 uppercase">Live Database</span>
+            </div>
+        </div>
+
+        <div class="flex-1 max-w-lg mx-6 flex gap-2">
+            <input type="text" id="search-input" placeholder="Search school, code, requirements..."
+                   class="glass-panel border-none shadow-sm flex-1 px-4 text-sm font-medium focus:outline-none rounded-lg" style="height: 44px;" oninput="renderBoard()" onkeyup="if(event.key==='Enter') triggerSearch()">
+            <button onclick="triggerSearch()" class="macos-btn flex items-center justify-center shrink-0" style="height: 44px;">SEARCH</button>
+        </div>
+
+        <button id="new-request-btn" onclick="openEditModal()" class="macos-btn flex items-center gap-2" style="height: 44px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5v14"/></svg>
+            NEW REQUEST
+        </button>
+    </header>
+
+    <!-- Main Board -->
+    <main class="px-6 pt-4 pb-8 max-w-[1600px] mx-auto overflow-x-auto h-[calc(100vh-76px)]">
+        <div class="flex gap-4 min-w-[1400px] h-full">
+            <div class="flex-1 flex flex-col">
+                <h3 class="px-2 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest flex justify-between">OPEN <span>(<span id="count-OPEN">0</span>)</span></h3>
+                <div id="col-OPEN" class="kanban-col flex-1" style="background-color: #fafeff;" ondragover="onDragOver(event)" ondrop="onDrop(event, 'OPEN')"></div>
+            </div>
+            <div class="flex-1 flex flex-col">
+                <h3 class="px-2 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest flex justify-between">IN PROGRESS <span>(<span id="count-IN_PROGRESS">0</span>)</span></h3>
+                <div id="col-IN_PROGRESS" class="kanban-col flex-1" style="background-color: #fafeff;" ondragover="onDragOver(event)" ondrop="onDrop(event, 'IN_PROGRESS')"></div>
+            </div>
+            <div class="flex-1 flex flex-col">
+                <h3 class="px-2 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest flex justify-between">CLOSED <span>(<span id="count-CLOSED">0</span>)</span></h3>
+                <div id="col-CLOSED" class="kanban-col flex-1" style="background-color: #fafeff;" ondragover="onDragOver(event)" ondrop="onDrop(event, 'CLOSED')"></div>
+            </div>
+            <div class="flex-1 flex flex-col">
+                <h3 class="px-2 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest flex justify-between">SKIPPED <span>(<span id="count-SKIPPED">0</span>)</span></h3>
+                <div id="col-SKIPPED" class="kanban-col flex-1" style="background-color: #ffeaea;" ondragover="onDragOver(event)" ondrop="onDrop(event, 'SKIPPED')"></div>
+            </div>
+
+            <!-- Sidebar / Notes & Directory -->
+            <div class="w-[320px] shrink-0 flex flex-col gap-4 h-full">
+                <!-- General Notes -->
+                <div class="flex-1 glass-card bg-amber-50/80 border-amber-200 flex flex-col overflow-hidden">
+                    <div class="px-4 py-3 border-b border-amber-200 bg-amber-100/60 shrink-0">
+                        <h3 class="text-xs font-bold text-amber-700 uppercase tracking-widest">BULLETIN BOARD</h3>
+                    </div>
+                    <textarea id="general-notes" oninput="saveGeneralNotes(this.value)" style="background: transparent; border: none; border-radius: 0; box-shadow: none;" class="flex-1 w-full h-full text-sm text-slate-700 placeholder:text-slate-400 outline-none resize-none focus:ring-0 m-0 leading-relaxed" placeholder="Type general notes here..."></textarea>
+                </div>
+
+                <!-- Programme Team Directory -->
+                <div class="glass-card bg-indigo-50/80 border-indigo-200 flex flex-col shrink-0">
+                    <div class="px-4 py-3 border-b border-indigo-200 bg-indigo-100/60 shrink-0">
+                        <h3 class="text-xs font-bold text-indigo-700 uppercase tracking-widest">PROGRAMME TEAM DIRECTORY</h3>
+                    </div>
+                    <div class="p-4 text-[12px] font-medium text-slate-700 space-y-2.5">
+                        <div class="flex justify-between items-center"><strong class="text-slate-900 uppercase text-[10px]">Artelier</strong><span>Ahmad (65 9880 5678)</span></div>
+                        <div class="flex justify-between items-center"><strong class="text-slate-900 uppercase text-[10px]">Epitomedia</strong><span>Diyannah (65 9880 2569)</span></div>
+                        <div class="flex justify-between items-center"><strong class="text-slate-900 uppercase text-[10px]">Life Champs</strong><span>Eileen (65 9880 4896)</span></div>
+                        <div class="flex justify-between items-center"><strong class="text-slate-900 uppercase text-[10px]">Musicon</strong><span>Boey (65 9880 2985)</span></div>
+                        <div class="flex justify-between items-center"><strong class="text-slate-900 uppercase text-[10px]">Passionista</strong><span>ALL</span></div>
+                        <div class="flex justify-between items-center"><strong class="text-slate-900 uppercase text-[10px]">Sports First</strong><span>Steven (65 9880 5963)</span></div>
+                        <div class="flex justify-between items-center"><strong class="text-slate-900 uppercase text-[10px]">Studio Wu</strong><span>Jerinne (65 9880 3696)</span></div>
+                        <div class="flex flex-col gap-1"><strong class="text-slate-900 uppercase text-[10px]">Vivarch STEM</strong>
+                            <span class="pl-2 flex justify-between text-[11px] opacity-80"><span>Hardware</span><span>Jerinne (65 9880 3696)</span></span>
+                            <span class="pl-2 flex justify-between text-[11px] opacity-80"><span>Software</span><span>Diyannah (65 9880 2569)</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Detailed Modal -->
+    <div id="request-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel rounded-2xl w-full max-w-5xl flex flex-col max-h-[92vh] overflow-hidden bg-slate-50/95 shadow-2xl">
+
+            <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-white/80 shrink-0">
+                <h3 class="text-xl font-bold text-indigo-950 uppercase tracking-tighter">Trainer Request Form</h3>
+                <button onclick="closeModal('request-modal')" class="p-1.5 rounded-lg hover:bg-rose-500 hover:text-white transition-all text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-8">
+                <form id="request-form" onsubmit="saveRequest(event)" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <input type="hidden" id="request-id">
+
+                    <!-- Left Column -->
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                            <h4 class="text-sm font-bold text-indigo-600 uppercase tracking-widest">Core Details</h4>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Brand *</label>
+                                <select name="brand" required class="uppercase">
+                                    <option value="Artelier">Artelier (AR)</option>
+                                    <option value="Epitomedia">Epitomedia (EP)</option>
+                                    <option value="Life Champs" selected>Life Champs (LC)</option>
+                                    <option value="Musicon">Musicon (MC)</option>
+                                    <option value="Passionista">Passionista (PS)</option>
+                                    <option value="Sports First">Sports First (SF)</option>
+                                    <option value="Studio Wu">Studio Wu (SW)</option>
+                                    <option value="Vivarch">Vivarch (VE)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">School *</label>
+                                    <input type="text" name="school" required placeholder="Enter School" class="uppercase">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Programme *</label>
+                                    <input type="text" name="programme" required placeholder="Enter Programme" class="uppercase">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Closing *</label>
+                                <input type="date" name="closingDate" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Lead EC *</label>
+                                <select name="ec" required class="uppercase">
+                                    <option value="Sapnaa">Sapnaa</option><option value="Sarah">Sarah</option>
+                                    <option value="Martin">Martin</option><option value="Charlynn">Charlynn</option>
+                                    <option value="Kyrslte">Kyrslte</option><option value="Yuniza">Yuniza</option><option value="Khai">Khai</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Assistant EC</label>
+                            <select name="aec" class="uppercase">
+                                <option value="">NONE</option>
+                                <option value="Ralph">Ralph</option><option value="Francis">Francis</option>
+                                <option value="Daryl">Daryl</option><option value="Virgo">Virgo</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 p-6 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                            <div>
+                                <label class="block text-sm font-semibold text-indigo-600 mb-1.5 uppercase text-center">Main Trainers *</label>
+                                <input type="number" name="mainTrainersCount" required min="1" value="1" class="text-center" onchange="updateAsstFieldState()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-indigo-600 mb-1.5 uppercase text-center">Assistants</label>
+                                <input type="number" name="assistantTrainersCount" min="0" value="0" class="text-center" onchange="updateAsstFieldState()">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-6 p-2">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="moe_irs" class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                                <span class="text-sm font-semibold text-slate-700">MOE IRS</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="sfa" class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                                <span class="text-sm font-semibold text-slate-700">SFA</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="track_records" class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                                <span class="text-sm font-semibold text-slate-700">TRACK RECORDS</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Right Column (Text Areas with strict explicit padding) -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Target Group *</label>
+                            <textarea name="targetGroup" rows="4" placeholder="Describe participants..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Trainer Quals *</label>
+                            <textarea name="trainerQualifications" rows="9" placeholder="Experience needed..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Duration / Schedule *</label>
+                            <textarea name="programmeDuration" rows="5" placeholder="Dates and Timings..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5 uppercase">Venue</label>
+                            <textarea name="venue" rows="2" placeholder="Location details..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- PM Section -->
+                    <div id="pm-assignment-section" class="col-span-full pt-6 border-t border-slate-200 mt-2 hidden">
+                        <h4 class="text-sm font-bold text-emerald-700 uppercase mb-4 tracking-widest">// PM Control Panel</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-emerald-50/50 p-6 rounded-xl border border-emerald-200">
+                            <div>
+                                <label class="block text-sm font-semibold text-emerald-700 mb-1.5 uppercase">Main Trainers</label>
+                                <textarea name="assignedMainTrainers" id="pm-main-field" rows="6" placeholder="Names line by line..." class="border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500 bg-white/80"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-emerald-700 mb-1.5 uppercase">Asst Trainers</label>
+                                <textarea name="assignedAsstTrainers" id="pm-asst-field" rows="6" placeholder="Names line by line..." class="border-emerald-300 focus:border-emerald-500 focus:ring-emerald-500 bg-white/80 disabled:opacity-50 disabled:bg-slate-100 disabled:cursor-not-allowed"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="col-span-full flex gap-4 pt-6">
+                        <button type="submit" id="save-btn" class="flex-1 macos-btn text-base h-12">SYNC DATABASE</button>
+
+                        <!-- NEW: EDIT button -->
+                        <button type="button" id="edit-btn" onclick="enableEditMode()"
+                                style="display:none;"
+                                class="px-8 py-2 rounded-lg font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-600 hover:text-white transition-all text-sm border border-indigo-200 h-12">
+                            EDIT
+                        </button>
+
+                        <button type="button" id="delete-btn" onclick="deleteRequest()" class="px-8 py-2 rounded-lg font-bold text-rose-600 bg-rose-50 hover:bg-rose-500 hover:text-white transition-all text-sm border border-rose-200 h-12">DELETE</button>
+                    </div>
+                </form>
+
+                <!-- Thread -->
+                <div id="comment-section" class="col-span-full mt-8 pt-6 border-t border-slate-200 hidden">
+                    <h4 class="text-sm font-bold text-indigo-900 uppercase mb-4 tracking-widest">Internal Thread</h4>
+                    <div class="bg-white/80 rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <div id="comments-list" class="max-h-[300px] overflow-y-auto mb-4 space-y-3 pr-2"></div>
+                        <div class="flex gap-3">
+                            <input type="text" id="new-comment" placeholder="Add a link or message..." class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white" onkeyup="if(event.key==='Enter') addComment()">
+                            <button onclick="addComment()" class="bg-indigo-900 text-white px-8 py-2.5 rounded-lg font-bold text-sm hover:bg-black transition-all">POST</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.protocol === 'http:')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .catch(err => console.error('ServiceWorker registration failed: ', err));
+            });
+        } else {
+            console.log('ServiceWorker not registered: Unsupported environment (e.g., sandbox or blob URL).');
+        }
     </script>
 </body>
 </html>
